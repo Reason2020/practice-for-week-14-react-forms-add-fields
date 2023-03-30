@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function ContactUs() {
   const [name, setName] = useState('');
@@ -6,37 +6,71 @@ function ContactUs() {
   const [phone, setPhone] = useState('');
   const [ comments, setComments ] = useState('');
   const [ phoneType, setPhoneType ] = useState('');
+  const [ validationErrors, setValidationErrors ] = useState([]);
+  const [ hasSubmitted, setHasSubmitted ] = useState(false);
+
+  useEffect(() => {
+    let errors = [];
+
+    if (name.length < 1) {
+      errors.push('Please enter your Name');
+    }
+
+    if (!(email.includes('@'))) {
+      errors.push('Please enter a valid Email Address');
+    }
+
+    setValidationErrors(errors);
+  }, [name, email])
 
   const onSubmit = e => {
     // Prevent the default form behavior so the page doesn't reload.
     e.preventDefault();
 
-    // Create a new object for the contact us information.
-    const contactUsInformation = {
-      name,
-      email,
-      phone,
-      comments,
-      phoneType,
-      submittedOn: new Date()
-    };
+    setHasSubmitted(true);
+    //if there are validation errors
+    if (validationErrors.length > 0) {
+      alert('Cannot Submit');
+    } else {
+      // Create a new object for the contact us information.
+      const contactUsInformation = {
+        name,
+        email,
+        phone,
+        comments,
+        phoneType,
+        submittedOn: new Date()
+      };
 
-    // Ideally, we'd persist this information to a database using a RESTful API.
-    // For now, though, just log the contact us information to the console.
-    console.log(contactUsInformation);
+      // Ideally, we'd persist this information to a database using a RESTful API.
+      // For now, though, just log the contact us information to the console.
+      console.log(contactUsInformation);
 
-    // Reset the form state.
-    setName('');
-    setEmail('');
-    setPhone('');
-    setComments('');
-    setPhoneType('');
+      // Reset the form state.
+      setName('');
+      setEmail('');
+      setPhone('');
+      setComments('');
+      setPhoneType('');
+      setValidationErrors([]);
+      setHasSubmitted(false);
+    }
   };
 
   return (
     <div>
       <h2>Contact Us</h2>
-      <form onSubmit={onSubmit}>
+      {hasSubmitted && validationErrors.length > 0 && (
+      <div>
+        The following errors were found:
+        <ul>
+          {validationErrors.map(error => {
+            return <li key={error}>{error}</li>
+          })}
+        </ul>
+      </div>
+    )}
+    <form onSubmit={onSubmit}>
         <div>
           <label htmlFor='name'>Name:</label>
           <input
@@ -63,17 +97,6 @@ function ContactUs() {
             onChange={e => setPhone(e.target.value)}
             value={phone}
           />
-        </div>
-        <div>
-          <label htmlFor='comments'>Comments:</label>
-          <textarea 
-            id='comments' 
-            name='comments' 
-            value={comments}   
-            onChange={e => setComments(e.target.value)} 
-          />
-        </div>
-        <div>
           <select
             name='phoneType'
             onChange={e => setPhoneType(e.target.value)}
@@ -87,9 +110,19 @@ function ContactUs() {
             <option>Mobile</option>
           </select>
         </div>
+        <div>
+          <label htmlFor='comments'>Comments:</label>
+          <textarea
+            id='comments'
+            name='comments'
+            onChange={e => setComments(e.target.value)}
+            value={comments}
+          />
+        </div>
         <button>Submit</button>
       </form>
     </div>
+    
   );
 }
 
